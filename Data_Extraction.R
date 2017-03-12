@@ -19,6 +19,12 @@ download_update <- function(){
   download.file(url, paste0("new",".pdf"), mode = "wb")
   filename <- str_extract(pdf_text("new.pdf")[2], "Date:.* ") %>% str_replace("Date:","") %>% str_replace_all("/","-") %>% str_trim()
   new.txt <- pdf_text("new.pdf")
+  
+  if (file.exists(paste0(filename,".txt"))) {
+    
+    stop("No updates today, Jorge! Let's check back tomorrow! It's time to update this man.")
+  }
+  
   write(new.txt, paste0(filename,".txt"))
       
   #Checking last update
@@ -188,8 +194,8 @@ download_update <- function(){
       write.csv(HPD_log, "Full_df.csv", row.names = FALSE )
     }
   
- 
+ return(Full_df)
 }
 # use the function to update the dataset
-download_update()
+tes <- download_update()
 
