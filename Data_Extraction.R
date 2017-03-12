@@ -10,22 +10,26 @@ download_update <- function(){
   
   folder <- "/Users/legs_jorge/Documents/Data Science Projects/RHartford/PDFs"
   setwd(folder)
-  #data_2017 <- read.csv("full_bpd_calls.csv", row.names = NULL)
+  #data_2017 <- read.csv("full_HPD_calls.csv", row.names = NULL)
   #data_2017$Date <- as.POSIXct(data$Date)
   url <- "http://www.hartford.gov/images/police/ArrestLogs/blotter.pdf"
   
  
   
-      download.file(url, paste0(Sys.Date(),".pdf"), mode = "wb")
-
-      write(pdf_text(paste0(Sys.Date(),".pdf")), paste0(Sys.Date(),".txt"))
+  download.file(url, paste0("new",".pdf"), mode = "wb")
+  filename <- str_extract(pdf_text("new.pdf")[2], "Date:.* ") %>% str_replace("Date:","") %>% str_replace_all("/","-") %>% str_trim()
+  new.txt <- pdf_text("new.pdf")
+  write(new.txt, paste0(filename,".txt"))
+      
+  #Checking last update
   
+    #main.file <- read.csv('full_HPD_calls.csv', stringsAsFactors = FALSE)
+    #max(as.Date(main.file$Arrest.Date))
   ########################## Creating the dataframe ##############################
   
   # using the library stringr and regex here we extract the information 
   # from the text files and turn it into a dataframe
-  new_txt <- paste0(Sys.Date(),".txt")
-  df <- function(new_txt) {
+  new_txt <- paste0(filename,".txt")
     text <- readLines(new_txt)
     
     txt <- str_c(text, collapse = "\n")
@@ -34,96 +38,73 @@ download_update <- function(){
     txtparts <- unlist(str_split(txt, '--------------------------------------------------------------------------------'))
     
     #extracting specific fields
+    Published.Date <- str_extract(text[2], "Date:.*") %>% str_replace("Date:","") %>% str_trim() %>% rep(length(txtparts))
     Arrest.Date <- str_trim(str_extract(txtparts, "Arrest Date: .*    ")) %>% str_replace_all("Arrest Date: ","")
     Supect.Name <- str_extract(txtparts, "Name: .*DOB:") %>% str_replace_all("Name: ","") %>% str_replace_all("DOB:","") %>% str_trim()
     Suspect.DOB <- str_extract(txtparts, "DOB:.*Sex") %>% str_replace_all("DOB:","") %>% str_replace_all("Sex","") %>% str_trim()
     Suspect.Race <- str_extract(txtparts, "Race:.*\n") %>% str_replace_all("Race:","") %>% str_replace_all("\n","") %>% str_trim()
-    
+    Suspect.Sex <- str_extract(txtparts, "Sex:.*Race") %>% str_replace_all("Sex:","") %>% str_replace_all("Race","") %>% str_trim()
+    Suspect.Street <- str_extract(txtparts, "Addr:.*Hgt") %>% str_replace_all("Addr:","") %>% str_replace_all("Hgt","") %>% str_trim() %>% str_c(", ",str_extract(txtparts, "\n      .*MF") %>% str_replace_all("\n","") %>% str_replace_all("MF","") %>% str_trim())
+    Suspect.Hgt <- str_extract(txtparts, "Hgt:.*Wgt") %>% str_replace_all("Hgt:","") %>% str_replace_all("Wgt","") %>% str_trim()
+    Suspect.Wgt <- str_extract(txtparts, "Wgt:.*Hair") %>% str_replace_all("Wgt:","") %>% str_replace_all("Hair","") %>% str_trim()
+    Suspect.Hair <- str_extract(txtparts, "Hair:.*\n") %>% str_replace_all("Hair:","") %>% str_replace_all("\n","") %>% str_trim()
+    MF <- str_extract(txtparts, "MF#:.*Arrest") %>% str_replace_all("MF#:","") %>% str_replace_all("Arrest","") %>% str_trim()
+    Arrest.num <- str_extract(txtparts, "Arrest #:.*Case") %>% str_replace_all("Arrest #:","") %>% str_replace_all("Case","") %>% str_trim()
+    Case.num <- str_extract(txtparts, "Case #:.*\n") %>% str_replace_all("Case #:","") %>% str_replace_all("\n","") %>% str_trim()
+    Officers <- str_extract(txtparts, "Officers:.*\n") %>% str_replace_all("Officers:","") %>% str_replace_all("\n","") %>% str_trim()
+    Arrest.location <- str_extract(txtparts, "Location:.*\n") %>% str_replace_all("Location:","") %>% str_replace_all("\n","") %>% str_c(", Hartford, CT") %>% str_trim()
+    Release.Date <- str_extract(txtparts, "Release Date:.*      ") %>% str_replace_all("Release Date:","") %>% str_replace_all("      ","") %>% str_replace_all("BOND","") %>% str_trim()
+    Bond <- str_extract(txtparts, "  BOND.*\n") %>% str_replace_all("  BOND","") %>% str_replace_all("\n","") %>% str_trim()
+    WPTA <- str_extract(txtparts, "WPTA")
+    Charges <- str_extract(txtparts, "Charges:.*\n") %>% str_replace_all("Charges:","") %>% str_replace_all("\n","") %>% str_trim()
     ##########Continue from here
-    
-    Arrest.location <- str_extract(txtparts, "Location:.*\n") %>% str_replace_all("Location:","") %>% str_replace_all("\n","")
-    Suspect.address <- str_extract(txtparts, "Addr: .*\n") %>% str_replace_all("Location:","") %>% str_replace_all("\n","")
-    
-    
-    
-    #Since I'm capturing only the raw data, I'll save the next steps for later
-    address_Geo <- str_replace_all(Response_address,' Apt\\. .*, ',', BROCKTON, ')
-    address_Geo <- str_replace_all(address_Geo,"NA, BROCKTON, MA","")
-    
-    police_officer <- str_extract_all(txtparts, "(?s)Location\\/Address:[^\n]*\\R(.*)|(?s)Vicinity of:[^\n]*\\R(.*)") %>% str_extract_all("ID:.*\n|Patrolman.*\n")
-    police_officer <- str_replace_all(police_officer,"ID:","") %>% str_replace_all("c\\(\\\"    ","") %>% str_replace_all("\\\n\"","") %>% str_replace_all("\"","") %>% str_replace_all("\\)","") %>% str_replace_all("\\\\n","") %>% str_replace("character\\(0","")
-    
-    call_reason_action <- str_extract_all(txtparts, "                [[:digit:]]{4}.*\n")
-    call_reason_action <- str_replace_all(call_reason_action, "[[:digit:]]{4}","") %>% str_replace_all("c\\(\\\"    ","") %>% str_replace_all("\\\n\"","") %>% str_replace_all("\"","") %>% str_replace_all("\\)","") %>% str_replace_all("\\\\n","")
-    
-    Refer_To_Arrest <- str_extract(txtparts, "Refer To Arrest:.*\n") 
-    Refer_To_Arrest <- str_replace_all(Refer_To_Arrest, "Refer To Arrest:","") %>% str_replace_all("c\\(\\\"    ","") %>% str_replace_all("\\\n\"","") %>% str_replace_all("\"","") %>% str_replace_all("\\)","") %>% str_replace_all("\\\\n","") %>% str_replace("character\\(0","")
-    
-    Refer_To_Summons <- str_extract_all(txtparts, "Refer To Summons:.*\n")
-    Refer_To_Summons <- str_replace_all(Refer_To_Summons, "Refer To Summons:","") %>% str_replace_all("c\\(\\\"    ","") %>% str_replace_all("\\\n\"","") %>% str_replace_all("\"","") %>% str_replace_all("\\)","") %>% str_replace_all("\\\\n","") %>% str_replace("character\\(0","")
-    
-    Summons <- str_extract_all(txtparts, "         Summons:    .*\n") %>% str_replace_all("Summons:","")  
-    Summons <- str_replace_all(Summons, "c\\(\\\"    ","") %>% str_replace_all("\\\n\"","") %>% str_replace_all("\\)","") %>% str_replace_all("\\\\n","") %>% str_replace("character\\(0","")
-    
-    Arrested <- str_extract_all(txtparts, "          Arrest:    .*\n") 
-    Arrested <- str_replace_all(Arrested,"Arrest:","") %>% str_replace_all("c\\(\\\"    ","") %>% str_replace_all("\\\n\"","") %>% str_replace_all("\\)","") %>% str_replace_all("\\\\n","") %>% str_replace("character\\(0","")
-    
-    Age <- str_extract_all(txtparts,"Age:.*\n") %>% str_replace_all("Age:","")
-    Age <- str_replace_all(Age, "c\\(\\\"    ","") %>% str_replace_all("\\\n\"","") %>% str_replace_all("\"","") %>% str_replace_all("\\)","") %>% str_replace_all("\\\\n","") %>% str_replace("character\\(0","")
-    #age_m <- unlist(str_split(Age, ","))
-    
-    Suspect_Address <- str_extract_all(txtparts,"         Address:    .*\n") %>% str_replace_all("Address:","") %>% str_replace_all("c\\(\\\"    ","") %>% str_replace_all("\\\n\"","") %>% str_replace_all("\"","") %>% str_replace_all("\\)","") %>% str_replace_all("\\\\n","") %>% str_replace("character\\(0","")
-    #Occurrence_location <- str_replace_all( Occurrence_location, "c\\(\\\"    ","") %>% str_replace_all("\\\n\"","") %>% str_replace_all("\"","") %>% str_replace_all("\\)","") %>% str_replace_all("\\\\n","") %>% str_replace("character\\(0","")
-    
-    charges <- unlist(str_extract_all(txtparts,"Charges:    .*\n") %>% str_replace_all("Charges:",""))
-    charges <- str_replace_all(charges, "c\\(\\\"    ","") %>% str_replace_all("\\\n\"","") %>% str_replace_all("\"","") %>% str_replace_all("\\)","") %>% str_replace_all("\\\\n","") %>% str_replace("character\\(0","")
-    
-    response_time <- str_extract_all(txtparts,"Arvd.*\n") 
-    response_time <- str_replace_all(response_time, "c\\(\\\"    ","") %>% str_replace_all("\\\n\"","") %>% str_replace_all("\"","") %>% str_replace_all("\\)","") %>% str_replace_all("\\\\n","") %>% str_replace_all("c\\(","") %>% str_replace("character\\(0","")
-    
+  
     
     #Putting everything together
     
-    BPD_log <- cbind(Date, Call_taker, call_reason_action, Response_address, address_Geo, police_officer, Refer_To_Summons, Summons, Refer_To_Arrest, Arrested,Age,  Suspect_Address, charges, response_time)
-    BPD_log <- data.frame(BPD_log, stringsAsFactors = FALSE)
-    BPD_log[BPD_log == ""] = NA 
-    BPD_log$Response_address[is.na(BPD_log$Response_address)] <- 0
-    BPD_log <- subset(BPD_log, !is.na(Call_taker))
-    # BPD_log$Date <- as.POSIXct(BPD_log$Date,format ="%m/%d/%Y %H:%M", tz = "EST")
-    # BPD_log$Month <- month(BPD_log$Date)
-    # BPD_log$Day <- day(BPD_log$Date)
+    HPD_log <- cbind(Published.Date,Arrest.Date, Supect.Name, Suspect.DOB, Suspect.Race, Suspect.Sex, Suspect.Street, Suspect.Hgt, Suspect.Wgt,  Suspect.Hair, MF, Arrest.num, Case.num, Officers,  Arrest.location, Release.Date, Bond, WPTA, Charges )
+    HPD_log <- data.frame(HPD_log, stringsAsFactors = FALSE)
+    HPD_log[HPD_log == ""] = NA 
+    HPD_log$Arrest.location[is.na(HPD_log$Arrest.location)] <- 0
+    # HPD_log$Date <- as.POSIXct(HPD_log$Date,format ="%m/%d/%Y %H:%M", tz = "EST")
+    
+    str(HPD_log)
+    HPD_log <- HPD_log[rowSums(is.na(HPD_log)) < 5,] # Deleting all the row that have more than five NAs
+    # HPD_log$Month <- month(HPD_log$Date)
+    # HPD_log$Day <- day(HPD_log$Date)
     
     
     
     #########################################################GEOCODING##################################################
-    BPD_log$address_Geo <- as.character(BPD_log$address_Geo)
-    
-    BPD_log$address_Geo[is.na(BPD_log$address_Geo)] <- 0
-    getGeoDetails <- function(address_Geo){ 
-      address_Geo <- as.character(address_Geo) 
-      #use the gecode function to query google servers
-      geo_reply = geocode(address_Geo, output = 'all', messaging = TRUE, override_limit = TRUE)
+    #Geocoding Arrest Location
+    HPD_log$Arrest.location <- as.character(HPD_log$Arrest.location)
+    HPD_log$Arrest.Date.Formatted <- as.POSIXct(HPD_log$Arrest.Date,format = "%m/%d/%Y %H:%M", tz = "EST")
+    HPD_log$Arrest.location[is.na(HPD_log$Arrest.location)] <- 0 #change from NA to 0 so geocode() can do its job
+    getGeoDetails <- function(Arrest.location){ 
+      Arrest.location <- as.character(Arrest.location) 
+      #use the geocode function to query google servers
+      geo_reply = geocode(Arrest.location, output = 'all', messaging = TRUE, override_limit = TRUE)
       #now extract the bits that we need from the returned list
-      answer <- data.frame(lat = NA, 
-                           long = NA, 
-                           accuracy = NA, 
-                           formatted_address = NA, 
-                           address_type= NA, 
-                           status= NA)
-      answer$status <- geo_reply$status
+      answer <- data.frame(Arrest.lat = NA, 
+                           Arrest.long = NA, 
+                           Arrest.accuracy = NA, 
+                           Arrest.formatted_address = NA, 
+                           Arrest.address_type = NA, 
+                           Arrest.status = NA)
+      answer$Arrest.status <- geo_reply$status
       
       #return Na's if we didn't get a match:
-      if (geo_reply$status != "OK"){
+      if (geo_reply$status != "OK") {
         return(answer)
       }   
       #else, extract what we need from the Google server reply into a dataframe:
-      answer$lat <- geo_reply$results[[1]]$geometry$location$lat
-      answer$long <- geo_reply$results[[1]]$geometry$location$lng   
-      if (length(geo_reply$results[[1]]$types) > 0){
-        answer$accuracy <- geo_reply$results[[1]]$types[[1]]
+      answer$Arrest.lat <- geo_reply$results[[1]]$geometry$location$lat
+      answer$Arrest.long <- geo_reply$results[[1]]$geometry$location$lng   
+      if (length(geo_reply$results[[1]]$types) > 0) {
+        answer$Arrest.accuracy <- geo_reply$results[[1]]$types[[1]]
       }
-      answer$address_type <- paste(geo_reply$results[[1]]$types, collapse=',')
-      answer$formatted_address <- geo_reply$results[[1]]$formatted_address
+      answer$Arrest.address_type <- paste(geo_reply$results[[1]]$types, collapse=',')
+      answer$Arrest.formatted_address <- geo_reply$results[[1]]$formatted_address
       
       return(answer)
     }
@@ -132,38 +113,83 @@ download_update <- function(){
     geocoded <- data.frame()
     
     
-    for (ii in seq_along(BPD_log$address_Geo )){
-      print(paste("Working on index", ii, "of", length(BPD_log$address_Geo )))
+    for (ii in seq_along(HPD_log$Arrest.location )){
+      print(paste("Working on index", ii, "of", length(HPD_log$Arrest.location )))
       #query the google geocoder - this will pause here if we are over the limit.
-      result = getGeoDetails(BPD_log$address_Geo[ii]) 
+      result = getGeoDetails(HPD_log$Arrest.location[ii]) 
       print(result$status)     
       result$index <- ii
       #append the answer to the results file.
       geocoded <- smartbind(geocoded, result)
     }
     geocoded <- geocoded[!duplicated(geocoded),]
-    BPD_log <- cbind(BPD_log, geocoded)
+    HPD_log <- cbind(HPD_log, geocoded)
+    
+    
+    #Geocoding Suspect Address
+    HPD_log$Suspect.Street <- as.character(HPD_log$Suspect.Street)
+    HPD_log$Suspect.Street[is.na(HPD_log$Suspect.Street)] <- 0 #change from NA to 0 so geocode() can do its job
+    getGeoDetails <- function(Suspect.Street){ 
+      Suspect.Street <- as.character(Suspect.Street) 
+      #use the geocode function to query google servers
+      geo_reply = geocode(Suspect.Street, output = 'all', messaging = TRUE, override_limit = TRUE)
+      #now extract the bits that we need from the returned list
+      answer <- data.frame(Suspect.lat = NA, 
+                           Suspect.long = NA, 
+                           Suspect.accuracy = NA, 
+                           Suspect.formatted_address = NA, 
+                           Suspect.address_type = NA, 
+                           Suspect.status = NA)
+      answer$Suspect.status <- geo_reply$status
+      
+      #return Na's if we didn't get a match:
+      if (geo_reply$status != "OK") {
+        return(answer)
+      }   
+      #else, extract what we need from the Google server reply into a dataframe:
+      answer$Suspect.lat <- geo_reply$results[[1]]$geometry$location$lat
+      answer$Suspect.long <- geo_reply$results[[1]]$geometry$location$lng   
+      if (length(geo_reply$results[[1]]$types) > 0) {
+        answer$Suspect.accuracy <- geo_reply$results[[1]]$types[[1]]
+      }
+      answer$Suspect.address_type <- paste(geo_reply$results[[1]]$types, collapse=',')
+      answer$Suspect.formatted_address <- geo_reply$results[[1]]$formatted_address
+      
+      return(answer)
+    }
+    
+    #initialise a dataframe to hold the results
+    geocoded <- data.frame()
+    
+    
+    for (ii in seq_along(HPD_log$Suspect.Street )){
+      print(paste("Working on index", ii, "of", length(HPD_log$Suspect.Street )))
+      #query the google geocoder - this will pause here if we are over the limit.
+      result = getGeoDetails(HPD_log$Suspect.Street[ii]) 
+      print(result$status)     
+      result$index <- ii
+      #append the answer to the results file.
+      geocoded <- smartbind(geocoded, result)
+    }
+    geocoded <- geocoded[!duplicated(geocoded),]
+    HPD_log <- cbind(HPD_log, geocoded)
     
     
     ###################################################################
     
-  }
+  
+  
   # Combining daily logs into one data frame
   
-  Full_df <- data.frame()
-  for (i in seq_along(new_txt)) {
-    
-    Full_df <- smartbind(Full_df,df(new_txt[i])) 
-    
-  } 
+  if(file.exists("Full_df.csv")) {
+    Full_df <- read.csv("Full_df.csv")
+    Full_df <- smartbind(Full_df, HPD_log) } 
+  else {
+      write.csv(HPD_log, "Full_df.csv", row.names = FALSE )
+    }
   
-  Full_df$Date <- as.POSIXct(Full_df$Date,format = "%m/%d/%Y %H:%M", tz = "EST")
-  
-  #new_data <- smartbind(data_2017,Full_df)
-  #new_data <- new_data[!duplicated(new_data),]
-  write.csv(Full_df, "full_bpd_calls.csv", row.names = FALSE)
-  return(Full_df)
+ 
 }
 # use the function to update the dataset
-test <- download_update()
+download_update()
 
