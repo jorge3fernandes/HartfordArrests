@@ -16,23 +16,26 @@ library(magrittr)
 library(rpivotTable)
 library(dygraphs)
 library(xts)
+library(lubridate)
 
-
+colnames((Arrest.Data))
+as.POSIXct(Arrest.Data$Arrest.Date, "%b/%d/%y %h:%m")
+mdy_hm(Arrest.Data$Arrest.Date, tz = "EST")
+Arrest.Data$Arrest.Date <- mdy_hm(Arrest.Data$Arrest.Date, tz = "EST")
 
 ## renderLeaflet() is used at server side to render the leaflet map 
 shinyServer(function(input, output) {
   
-  testdata <- subset(testdata, !is.na(Date))
+  Arrest.Data <- subset(Arrest.Data, !is.na(Arrest.Date))
   
   test <- reactive({
-    testdata <- subset(testdata, as.Date(Date) >= input$date1[1] & as.Date(Date) <= input$date1[2]) %>%
-                subset(hour(testdata$Date) >= input$time[1] & hour(testdata$Date) <= input$time[2])
+    Arrest.Data <- subset(Arrest.Data, ymd_hms(Arrest.Data$Arrest.Date) >= input$date1[1] & mdy_hm(Arrest.Data$Arrest.Date <= input$date1[2])) %>% subset(hour(Arrest.Data$Arrest.Date) >= input$time[1] & hour(Arrest.Data$Arrest.Date) <= input$time[2])
     if(!is.null(input$Charges)){
-      if(input$Charges == "All"){
-        testdata
+      if(input$Charges == ""){
+        Arrest.Data
       }
       else{
-        testdata <- subset(testdata, charges %in% as.character(input$Charges))
+        Arrest.Data <- subset(Arrest.Data, Charges %in% as.character(input$Charges))
           }
     }
     
@@ -49,25 +52,23 @@ shinyServer(function(input, output) {
     if(input$graph == 'Clusters'){
     leaflet(data = test() ) %>% 
       addTiles() %>% 
-      setView(-71.02016, 42.08667, zoom = 13) %>% addMarkers( ~long, ~lat, popup = paste("<b>","Call reason/Action: ","</b>", test()$call_reason_action,"<br>",
-                                                              "<b>","Occurrence Address: ","</b>", test()$formatted_address, "<br>",
-                                                              "<b>","Charges: ","</b>", test()$charges, "<br>",
-                                                              "<b>","Summoned:","</b>", test()$Summons, "<br>",
-                                                              "<b>","Arrested: ","</b>", test()$Arrested, "<br>",
-                                                              "<b>","Arr/Summ Address: ","</b>", test()$Occurrence_location, "<br>",
-                                                              "<b>","Age: ","</b>", test()$Age,"<br>",
-                                                              "<b>","Date: ","</b>",test()$Date),clusterOptions = markerClusterOptions(zoomToBoundsOnClick = TRUE, removeOutsideVisibleBounds = TRUE))}
+      setView(-72.69342, 41.7591, zoom = 13) %>% addMarkers( ~long, ~lat, popup = paste("<b>","Arrest.Date: ","</b>", test()$Arrest.Date,"<br>",
+                                                              "<b>","Arrest.location: ","</b>", test()$Arrest.formatted_address, "<br>",
+                                                              "<b>","Charges: ","</b>", test()$Charges, "<br>",
+                                                              "<b>","Bond:","</b>", test()$Bond, "<br>",
+                                                              "<b>","Release.Date","</b>", test()$Release.Date, "<br>",
+                                                              "<b>","Suspect.DOB: ","</b>", test()$Suspect.DOB, "<br>",
+                                                              "<b>","Published.Date: ","</b>",test()$Published.Date),clusterOptions = markerClusterOptions(zoomToBoundsOnClick = TRUE, removeOutsideVisibleBounds = TRUE))}
     else{
       leaflet(data = test() ) %>% 
         addTiles() %>% 
-        setView(-71.02016, 42.08667, zoom = 13) %>% addMarkers( ~long, ~lat, popup = paste("<b>","Call reason/Action: ","</b>", test()$call_reason_action,"<br>",
-                                                                                           "<b>","Occurrence Address: ","</b>", test()$formatted_address, "<br>",
-                                                                                           "<b>","Charges: ","</b>", test()$charges, "<br>",
-                                                                                           "<b>","Summoned:","</b>", test()$Summons, "<br>",
-                                                                                           "<b>","Arrested: ","</b>", test()$Arrested, "<br>",
-                                                                                           "<b>","Arr/Summ Address: ","</b>", test()$Occurrence_location, "<br>",
-                                                                                           "<b>","Age: ","</b>", test()$Age,"<br>",
-                                                                                           "<b>","Date: ","</b>",test()$Date))
+        setView(-72.69342, 41.7591, zoom = 13) %>% addMarkers( ~long, ~lat, popup = paste("<b>","Arrest.Date: ","</b>", test()$Arrest.Date,"<br>",
+                                                                                          "<b>","Arrest.location: ","</b>", test()$Arrest.formatted_address, "<br>",
+                                                                                          "<b>","Charges: ","</b>", test()$Charges, "<br>",
+                                                                                          "<b>","Bond:","</b>", test()$Bond, "<br>",
+                                                                                          "<b>","Release.Date","</b>", test()$Release.Date, "<br>",
+                                                                                          "<b>","Suspect.DOB: ","</b>", test()$Suspect.DOB, "<br>",
+                                                                                          "<b>","Published.Date: ","</b>",test()$Published.Date))
     }
     
   })
@@ -77,7 +78,7 @@ shinyServer(function(input, output) {
   
   output$summary <- renderPlotly({
     
-      temp <- tally(group_by(test(), hour(Date)))
+      temp <- tally(group_by(test(), hour(Arrest.Data$Arrest.Date)))
       colnames(temp) <- c("Time", "Count")
       
     plot_ly(temp, x = Time, y = Count)
@@ -85,7 +86,7 @@ shinyServer(function(input, output) {
 
   output$summary2 <- renderPlotly({
     
-    temp <- tally(group_by(test(),weekdays(Date)))
+    temp <- tally(group_by(test(),weekdays(Arrest.Data$Arrest.Date)))
     colnames(temp) <- c("Weekdays", "Count")
     temp$Weekdays <- factor(temp$Weekdays, levels = c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"))
     temp <- arrange(temp, Weekdays)
@@ -93,16 +94,18 @@ shinyServer(function(input, output) {
   })
   
   output$trend <- renderPlotly({
-    trend <- Full_df %>% group_by(as.Date(Date)) %>% summarize(n=n())
+    trend <- Full_df %>% group_by(as.Date(Arrest.Date)) %>% summarize(n=n())
     colnames(trend) <- c("Date", "Count")
     plot_ly(trend, x = Date, y = Count)
   })
   
   output$table <- renderDataTable({
     
-    fnl2 <- Full_df %>% group_by(Month = as.Date(Date, format = "%y %B")) %>%
+    fnl2 <- Full_df %>% group_by(Month = as.Date(Arrest.Date, format = "%y %B")) %>%
       summarize(n=n())
   })
+  
+ 
     
 })
 

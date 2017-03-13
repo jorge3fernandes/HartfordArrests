@@ -8,7 +8,10 @@ library(ggmap)
 
 download_update <- function(){
   
-  folder <- "/Users/legs_jorge/Documents/Data Science Projects/RHartford/PDFs"
+  #folder <- "/Users/legs_jorge/Documents/Data Science Projects/RHartford/PDFs"
+  
+  folder <- getwd()
+    #paste0(getwd(),"/PDFs")
   setwd(folder)
   #data_2017 <- read.csv("full_HPD_calls.csv", row.names = NULL)
   #data_2017$Date <- as.POSIXct(data$Date)
@@ -50,7 +53,7 @@ download_update <- function(){
     Suspect.DOB <- str_extract(txtparts, "DOB:.*Sex") %>% str_replace_all("DOB:","") %>% str_replace_all("Sex","") %>% str_trim()
     Suspect.Race <- str_extract(txtparts, "Race:.*\n") %>% str_replace_all("Race:","") %>% str_replace_all("\n","") %>% str_trim()
     Suspect.Sex <- str_extract(txtparts, "Sex:.*Race") %>% str_replace_all("Sex:","") %>% str_replace_all("Race","") %>% str_trim()
-    Suspect.Street <- str_extract(txtparts, "Addr:.*Hgt") %>% str_replace_all("Addr:","") %>% str_replace_all("Hgt","") %>% str_trim() %>% str_c(", ",str_extract(txtparts, "\n      .*MF") %>% str_replace_all("\n","") %>% str_replace_all("MF","") %>% str_trim())
+    Suspect.Street <- str_extract(txtparts, "Addr:.*Hgt") %>% str_replace_all("Addr:","") %>% str_replace_all("Hgt","") %>% str_trim() %>% str_c(", ",str_extract(txtparts, "\n      .*MF") %>% str_replace_all("\n","") %>% str_replace_all("\\.","") %>% str_replace_all("MF","") %>% str_trim())
     Suspect.Hgt <- str_extract(txtparts, "Hgt:.*Wgt") %>% str_replace_all("Hgt:","") %>% str_replace_all("Wgt","") %>% str_trim()
     Suspect.Wgt <- str_extract(txtparts, "Wgt:.*Hair") %>% str_replace_all("Wgt:","") %>% str_replace_all("Hair","") %>% str_trim()
     Suspect.Hair <- str_extract(txtparts, "Hair:.*\n") %>% str_replace_all("Hair:","") %>% str_replace_all("\n","") %>% str_trim()
@@ -73,8 +76,6 @@ download_update <- function(){
     HPD_log[HPD_log == ""] = NA 
     HPD_log$Arrest.location[is.na(HPD_log$Arrest.location)] <- 0
     # HPD_log$Date <- as.POSIXct(HPD_log$Date,format ="%m/%d/%Y %H:%M", tz = "EST")
-    
-    str(HPD_log)
     HPD_log <- HPD_log[rowSums(is.na(HPD_log)) < 5,] # Deleting all the row that have more than five NAs
     # HPD_log$Month <- month(HPD_log$Date)
     # HPD_log$Day <- day(HPD_log$Date)
@@ -169,7 +170,7 @@ download_update <- function(){
     
     
     for (ii in seq_along(HPD_log$Suspect.Street )){
-      print(paste("Working on index", ii, "of", length(HPD_log$Suspect.Street )))
+      print(paste("Working on Suspect.Street", ii, "of", length(HPD_log$Suspect.Street )))
       #query the google geocoder - this will pause here if we are over the limit.
       result = getGeoDetails(HPD_log$Suspect.Street[ii]) 
       print(result$status)     
@@ -188,14 +189,17 @@ download_update <- function(){
   # Combining daily logs into one data frame
   
   if(file.exists("Full_df.csv")) {
-    Full_df <- read.csv("Full_df.csv")
-    Full_df <- smartbind(Full_df, HPD_log) } 
+    Full_df <- read.csv("Full_df.csv") %>% smartbind(HPD_log) 
+    Full_df <- unique(Full_df)
+    write.csv(Full_df, "Full_df.csv", row.names = FALSE )} 
   else {
+      Full_df <- unique(Full_df)
       write.csv(HPD_log, "Full_df.csv", row.names = FALSE )
-    }
+  }
+
   
- return(Full_df)
+ return(unique(Full_df))
 }
 # use the function to update the dataset
-tes <- download_update()
+Arrest.Data <- download_update()
 

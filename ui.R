@@ -17,13 +17,12 @@ library(rpivotTable)
 
 ## leafletOutput is used at the ui side to display the rendered map.
 
-drop_down <- sort(unique(substr(testdata$call_reason_action, start = 17,stop = 52)))
-crime <- c("All", sort(as.character(unique(testdata$charges))))
+drop_down <- sort(unique(substr(Arrest.Data$Charges, start = 17,stop = 52)))
+crime <- c("All", sort(as.character(unique(Arrest.Data$Charges))))
 
-
-shinyUI(navbarPage("Brockton Police Log", id = "nav",
+shinyUI(navbarPage("Hartford Police Arrest Log", id = "nav",
                    
-                   tabPanel("Interactive map(Test Data)",
+                   tabPanel("Interactive map(Arrest.Data)",
                             div(class = "outer",
                                 
                                 tags$head(
@@ -40,10 +39,10 @@ shinyUI(navbarPage("Brockton Police Log", id = "nav",
                                               h2("Apply Filters"),
                                               
                                               dateRangeInput('date1','Choose Begin Date:',
-                                                          start = min(as.Date(testdata$Date), na.rm = TRUE),
-                                                          end = max(as.Date(testdata$Date), na.rm = TRUE),
-                                                          min = min(as.Date(testdata$Date), na.rm = TRUE),
-                                                          max = max(as.Date(testdata$Date), na.rm = TRUE),
+                                                          start = min(Arrest.Data$Arrest.Date, na.rm = TRUE),
+                                                          end = max(as.Date(Arrest.Data$Arrest.Date), na.rm = TRUE),
+                                                          min = min(as.Date(Arrest.Data$Arrest.Date), na.rm = TRUE),
+                                                          max = max(as.Date(Arrest.Data$Arrest.Date), na.rm = TRUE),
                                                           format = "mm/dd/yy",
                                                           separator = " - "
                                               ),
