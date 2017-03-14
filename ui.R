@@ -17,12 +17,13 @@ library(rpivotTable)
 
 ## leafletOutput is used at the ui side to display the rendered map.
 
-drop_down <- sort(unique(substr(Arrest.Data$Charges, start = 17,stop = 52)))
-crime <- c("All", sort(as.character(unique(Arrest.Data$Charges))))
+drop_down <- sort(unique(Arrest.Data$Charges))
+crime <- sort(as.character(unique(Arrest.Data$Charges)))
 
-shinyUI(navbarPage("Hartford Police Arrest Log", id = "nav",
+
+shinyUI(navbarPage("Brockton Police Log", id = "nav",
                    
-                   tabPanel("Interactive map(Arrest.Data)",
+                   tabPanel("Interactive map",
                             div(class = "outer",
                                 
                                 tags$head(
@@ -38,8 +39,8 @@ shinyUI(navbarPage("Hartford Police Arrest Log", id = "nav",
                                               
                                               h2("Apply Filters"),
                                               
-                                              dateRangeInput('date1','Choose Begin Date:',
-                                                          start = min(Arrest.Data$Arrest.Date, na.rm = TRUE),
+                                                 dateRangeInput('Date1','Choose Begin Arrest.Date:',
+                                                          start = min(as.Date(Arrest.Data$Arrest.Date), na.rm = TRUE),
                                                           end = max(as.Date(Arrest.Data$Arrest.Date), na.rm = TRUE),
                                                           min = min(as.Date(Arrest.Data$Arrest.Date), na.rm = TRUE),
                                                           max = max(as.Date(Arrest.Data$Arrest.Date), na.rm = TRUE),
@@ -72,7 +73,7 @@ shinyUI(navbarPage("Hartford Police Arrest Log", id = "nav",
                    
                    tabPanel("Data Explorer",
                             
-                            dataTableOutput("Data")
+                            dataTableOutput("Arrest.Data")
                             
                    ),
                    tabPanel("Summary",

@@ -5,13 +5,14 @@ library(pdftools)
 library(dplyr)
 library(gtools)
 library(ggmap)
+library(lubridate)
 
 download_update <- function(){
   
-  #folder <- "/Users/legs_jorge/Documents/Data Science Projects/RHartford/PDFs"
+  folder <- "/Users/legs_jorge/Documents/Data Science Projects/RHartford/PDFs"
   
-  folder <- getwd()
-    #paste0(getwd(),"/PDFs")
+  #folder <- getwd()
+  #folder <- paste0(getwd(),"/PDFs")
   setwd(folder)
   #data_2017 <- read.csv("full_HPD_calls.csv", row.names = NULL)
   #data_2017$Date <- as.POSIXct(data$Date)
@@ -19,8 +20,9 @@ download_update <- function(){
   
  
   
-  download.file(url, paste0("new",".pdf"), mode = "wb")
+  download.file(url, "new.pdf", mode = "wb")
   filename <- str_extract(pdf_text("new.pdf")[2], "Date:.* ") %>% str_replace("Date:","") %>% str_replace_all("/","-") %>% str_trim()
+  file.copy("new.pdf", paste0(filename,".pdf"))
   new.txt <- pdf_text("new.pdf")
   
   if (file.exists(paste0(filename,".txt"))) {
@@ -180,6 +182,9 @@ download_update <- function(){
     }
     geocoded <- geocoded[!duplicated(geocoded),]
     HPD_log <- cbind(HPD_log, geocoded)
+    HPD_log$Arrest.Date.Formatted <- mdy_hm(HPD_log$Arrest.Date, tz = "EST")
+    HPD_log$Arrest.Date.Formatted2 <- floor_date(HPD_log$Arrest.Date.Formatted, "day")
+    HPD_log$Arrest.Time <- paste0(hour(HPD_log$Arrest.Date.Formatted), ":",minute(HPD_log$Arrest.Date.Formatted))
     
     
     ###################################################################
@@ -188,14 +193,15 @@ download_update <- function(){
   
   # Combining daily logs into one data frame
   
-  if(file.exists("Full_df.csv")) {
+  #if(file.exists("Full_df.csv")) {
     Full_df <- read.csv("Full_df.csv") %>% smartbind(HPD_log) 
     Full_df <- unique(Full_df)
-    write.csv(Full_df, "Full_df.csv", row.names = FALSE )} 
-  else {
-      Full_df <- unique(Full_df)
-      write.csv(HPD_log, "Full_df.csv", row.names = FALSE )
-  }
+    write.csv(Full_df, "Full_df.csv", row.names = FALSE )
+    #} 
+  # else {
+  #     Full_df <- unique(Full_df)
+  #     write.csv(HPD_log, "Full_df.csv", row.names = FALSE )
+  # }
 
   
  return(unique(Full_df))
