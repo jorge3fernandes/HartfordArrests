@@ -1,0 +1,42 @@
+                           HARTFORD POLICE DEPARTMENT                    Page: 1
+                          DAILY RECORD OF ADULT ARREST        Date: 3/16/17 5:05
+Name: RIVERA,FIDEL,R             DOB:07/21/64 Sex:MALE   Race:HISPANIC
+Addr: 416 FRANKLIN AV B10        Hgt: 5'11     Wgt:145   Hair:BALD
+      HARTFORD,CT                MF#:A 87673 Arrest #:7160217 Case #:16-026036
+AKA: RIVERA,MIGUEL               RIVERA,FIDEL
+Officers:J56 GAUDINO,ANTHONY     E83 OGORMAN,PATRICK
+Arrest Date: 03/15/17 10:00      Location:253 HIGH ST
+Release Date:NOT RELEASED        BOND    $40,000
+Charges:     53A103              BURGLARY-THIRD DEGREE
+             53A125              LARCENY-FOURTH DEGREE
+--------------------------------------------------------------------------------
+Name: DAWSON,TYLON               DOB:08/08/79 Sex:MALE   Race:BLACK
+Addr: 128 PLAIN DRIVE            Hgt: 6'00     Wgt:190   Hair:BLACK AFRO
+      EAST HARTFORD,CT           MF#:A 70645 Arrest #:7160218 Case #:16-006793
+AKA: TATOO ON UPPER R/ARM
+Officers:L10 SAMSEL,JOHN,T       J81 GARTEN,ROBERT,C
+Arrest Date: 03/15/17 18:00      Location:253 HIGH ST
+Release Date:03/15/17 19:00      WPTA
+Charges:     53A181              BREACH OF PEACE-2nd
+             53A116              CRIMINAL MISCHIEF 2
+--------------------------------------------------------------------------------
+Name: TERRY,ROOSEVELT            DOB:12/08/85 Sex:MALE   Race:BLACK
+Addr: 66 CEDAR ST                Hgt: 6'00     Wgt:180   Hair:BLACK AFRO
+      HARTFORD,CT                MF#:A145274 Arrest #:7160219 Case #:17-007657
+Officers:J55 FLORES,AUGUSTIN
+Arrest Date: 03/15/17 21:16      Location:66 CEDAR ST
+Release Date:03/15/17 22:45      WPTA
+Charges:     53A182              DISORDERLY CONDUCT
+             53A61               ASSAULT-THIRD DEGREE
+--------------------------------------------------------------------------------
+Name: ALGARIN,NORMA              DOB:10/06/76 Sex:FEMALE Race:HISPANIC
+Addr: 32 DOROTHY ST              Hgt: 5'03     Wgt:172   Hair:BROWN STRAIGHT
+      HARTFORD,CT                MF#:A 66387 Arrest #:7160220 Case #:17-007674
+Officers:I38 PARKER,SCOTT,R      I79 CAGNO,PETER,J
+Arrest Date: 03/16/17 2:15       Location:32 DOROTHY ST
+Release Date:NOT RELEASED        BOND      $1,000
+Charges:     53A182              DISORDERLY CONDUCT
+             53A61               ASSAULT-THIRD DEGREE
+--------------------------------------------------------------------------------
+
+
