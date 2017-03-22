@@ -25,10 +25,10 @@ download_update <- function(){
   file.copy("new.pdf", paste0(filename,".pdf"))
   new.txt <- pdf_text("new.pdf")
   
-  if (file.exists(paste0(filename,".txt"))) {
-    
-    stop("No updates today, Jorge! Let's check back tomorrow! It's time to update this man.")
-  }
+  # if (file.exists(paste0(filename,".txt"))) {
+  #   
+  #   stop("No updates today, Jorge! Let's check back tomorrow! It's time to update this man.")
+  # }
   
   write(new.txt, paste0(filename,".txt"))
       
