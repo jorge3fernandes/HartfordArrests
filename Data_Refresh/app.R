@@ -50,7 +50,7 @@ ui <- fluidPage(
 # Define server logic required to draw a histogram
 server <- function(input, output) {
    
-  autoInvalidate <- reactiveTimer(1000)
+  autoInvalidate <- reactiveTimer(1000000000)
   
   observe({
     # Invalidate and re-execute this reactive expression every time the
